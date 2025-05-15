@@ -1,0 +1,50 @@
+repos:
+  # General hooks for all files
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+        description: Checks YAML files for syntax errors
+      - id: end-of-file-fixer
+        description: Ensures files end with a newline
+      - id: trailing-whitespace
+        description: Removes trailing whitespace
+
+  # Python hooks
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        description: Auto-formats Python code
+        args: [--line-length=120]
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+        description: Lints Python code for style and errors
+        args: [--max-line-length=120, --ignore=E203,W503]
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        description: Sorts Python imports
+        args: [--profile=black, --line-length=120]
+
+  # JavaScript/CSS/HTML hooks
+  - repo: https://github.com/prettier/prettier
+    rev: 4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        description: Auto-formats JavaScript, CSS, and HTML
+        files: \.(js|css|html)$
+        args: [--write]
+
+  # Security checks
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        description: Checks Python code for security issues
+        args: [-r, --skip=B101]
