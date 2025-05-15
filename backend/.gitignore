@@ -2,3 +2,4 @@
 cleaned
 uploads
 __pycache__
+.env
