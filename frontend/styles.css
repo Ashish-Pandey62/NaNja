@@ -104,6 +104,13 @@ input[type="file"] {
     display: none;
 }
 
+.suggestion-item.accepted {
+    background-color: #e6ffe6;
+}
+.suggestion-item.rejected {
+    background-color: #ffe6e6;
+}
+
 .success-message {
     color: #28a745;
     font-size: 16px;

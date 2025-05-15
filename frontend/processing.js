@@ -129,7 +129,9 @@ async function displayPreview() {
 async function displaySuggestions() {
     try {
         const response = await fetch(`http://127.0.0.1:8000/api/suggestions/${fileId}`);
-        if (!response.ok) throw new Error("Failed to fetch suggestions");
+        if (!response.ok) {
+            throw new Error(`Failed to fetch suggestions: ${response.statusText}`);
+        }
         const data = await response.json();
         const content = document.getElementById('suggestionsContent');
         if (data.suggestions && Array.isArray(data.suggestions)) {
@@ -142,11 +144,11 @@ async function displaySuggestions() {
                     </div>
                 </div>
             `).join('');
+            document.getElementById('applySuggestions').disabled = false;
         } else {
-            // Handle fallback case explicitly
             content.innerHTML = `
                 <div class="suggestion-item" data-id="1">
-                    <span>Error fetching AI suggestions; ${data.suggestions ? data.suggestions.text : 'drop high-null columns'}</span>
+                    <span>Error fetching AI suggestions; drop high-null columns</span>
                     <div>
                         <button class="btn accept-btn" onclick="acceptSuggestion(1)">Accept</button>
                         <button class="btn reject-btn" onclick="rejectSuggestion(1)">Reject</button>
@@ -154,23 +156,35 @@ async function displaySuggestions() {
                 </div>
             `;
             console.warn("Fallback suggestions displayed:", data.suggestions);
+            document.getElementById('applySuggestions').disabled = false;
         }
     } catch (error) {
         console.error("Suggestions error:", error);
         document.getElementById('suggestionsContent').innerHTML = "<p>Error loading suggestions: " + error.message + "</p>";
+        document.getElementById('applySuggestions').disabled = true;
     }
 }
 
 function acceptSuggestion(id) {
     const item = document.querySelector(`.suggestion-item[data-id="${id}"]`);
-    item.style.background = '#e6ffe6';
-    console.log(`Accepted suggestion ${id}`);
+    if (item) {
+        item.classList.add('accepted');
+        item.classList.remove('rejected');
+        console.log(`Accepted suggestion ${id}`);
+    } else {
+        console.error(`Suggestion item with ID ${id} not found`);
+    }
 }
 
 function rejectSuggestion(id) {
     const item = document.querySelector(`.suggestion-item[data-id="${id}"]`);
-    item.style.background = '#ffe6e6';
-    console.log(`Rejected suggestion ${id}`);
+    if (item) {
+        item.classList.add('rejected');
+        item.classList.remove('accepted');
+        console.log(`Rejected suggestion ${id}`);
+    } else {
+        console.error(`Suggestion item with ID ${id} not found`);
+    }
 }
 
 async function applyCleaning() {
@@ -201,22 +215,38 @@ async function applyCleaning() {
 }
 
 async function applySuggestions() {
-    const acceptedIds = Array.from(document.querySelectorAll('.suggestion-item[style*="background: #e6ffe6"]'))
+    const acceptedIds = Array.from(document.querySelectorAll('.suggestion-item.accepted'))
         .map(item => parseInt(item.dataset.id));
+    console.log("Accepted IDs:", acceptedIds);
+    if (acceptedIds.length === 0) {
+        alert("Please accept at least one suggestion before applying.");
+        return;
+    }
     try {
         const response = await fetch(`http://127.0.0.1:8000/api/apply-suggestions/${fileId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(acceptedIds)
         });
-        if (!response.ok) throw new Error("Suggestions application failed");
-        const { cleaned_file_id } = await response.json();
-        cleanedFileId = cleaned_file_id;
-        alert("Suggestions applied successfully!");
-        displaySummary();
-        if (currentPreviewType === 'cleaned') {
-            displayPreview();
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Suggestions application failed");
         }
+        const result = await response.json();
+        cleanedFileId = result.cleaned_file_id;
+        
+        let message = "Suggestions applied successfully!\n";
+        if (result.applied_suggestions.length > 0) {
+            message += "Applied:\n" + result.applied_suggestions.join("\n") + "\n";
+        }
+        if (result.failed_suggestions.length > 0) {
+            message += "Failed:\n" + result.failed_suggestions.join("\n");
+        }
+        alert(message);
+        
+        displaySummary();
+        togglePreview('cleaned');
+        displayPreview();
     } catch (error) {
         console.error("Suggestions error:", error);
         alert("Error applying suggestions: " + error.message);
