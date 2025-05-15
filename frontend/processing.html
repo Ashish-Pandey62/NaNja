@@ -18,10 +18,26 @@
             <div class="summary-content" id="summaryContent">
                 <p>Loading dataset summary...</p>
             </div>
-            <h3>Dataset Preview</h3>
-            <div class="preview-container">
-                <div class="preview-table" id="previewTable">
-                    <p>Loading dataset preview...</p>
+            <h3 class="collapsible-header" onclick="toggleCollapse('previewSection')">
+                <i class="fas fa-chevron-down"></i> Dataset Preview
+            </h3>
+            <div class="preview-section" id="previewSection">
+                <div class="preview-controls">
+                    <div class="toggle-buttons">
+                        <button class="btn toggle-btn active" id="originalBtn" onclick="togglePreview('original')">Original Dataset</button>
+                        <button class="btn toggle-btn" id="cleanedBtn" onclick="togglePreview('cleaned')">Cleaned Dataset</button>
+                    </div>
+                    <button class="btn refresh-btn" id="refreshPreview" onclick="refreshPreview()">
+                        <i class="fas fa-sync-alt"></i> Refresh Preview
+                    </button>
+                </div>
+                <div class="preview-container">
+                    <div class="preview-table" id="previewTable">
+                        <p>Loading dataset preview...</p>
+                    </div>
+                    <div class="loading-spinner" id="previewSpinner" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
                 </div>
             </div>
         </section>

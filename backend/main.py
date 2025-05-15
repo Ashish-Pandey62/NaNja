@@ -6,11 +6,13 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Optional
-from openai import AsyncOpenAI
+from groq import Groq
 from dotenv import load_dotenv
 import shutil
 from pathlib import Path
 import logging
+import json
+import re
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -18,13 +20,13 @@ logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if not OPENAI_API_KEY:
-    logger.warning("OpenAI API key not found. Using mock AI suggestions.")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    logger.warning("GROQ API key not found. Using mock AI suggestions.")
 
-# Initialize FastAPI and OpenAI client
+# Initialize FastAPI and Groq client
 app = FastAPI(title="NaNja Backend", description="API for NaNja data preprocessing tool")
-openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+llm_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 # Enable CORS
 app.add_middleware(
@@ -69,6 +71,7 @@ class SuggestionsResponse(BaseModel):
     suggestions: List[Suggestion]
 
 class DatasetPreview(BaseModel):
+    preview_type: str
     columns: List[str]
     data: List[List]
 
@@ -85,7 +88,12 @@ async def read_file(file_path: Path) -> pd.DataFrame:
         logger.error(f"Error reading file {file_path}: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Error reading file: {str(e)}")
 
-def get_dataset_summary(df: pd.DataFrame) -> Dict:
+def get_dataset_summary(df: pd.DataFrame, target_column: Optional[str] = None) -> Dict:
+    # Calculate null percentages for consistency with Colab
+    null_percentages = (df.isnull().sum() / len(df) * 100).round(2).astype(str).to_dict()
+    # Get a sample row, convert to dict, handle NaN by converting to string
+    sample_row = df.sample(1).iloc[0].fillna("None").astype(str).to_dict()
+    
     return {
         "rows": len(df),
         "duplicates": len(df) - len(df.drop_duplicates()),
@@ -97,11 +105,17 @@ def get_dataset_summary(df: pd.DataFrame) -> Dict:
                 "unique": int(df[col].nunique())
             }
             for col in df.columns
-        ]
+        ],
+        "dtypes": df.dtypes.astype(str).to_dict(),
+        "null_percentages": null_percentages,
+        "sample_row": sample_row,
+        "target": target_column if target_column in df.columns else "None",
+        "columns_list": df.columns.tolist()  # Add columns list for suggestion parsing
     }
 
 async def get_ai_suggestions(summary: Dict) -> List[Dict]:
-    if not openai_client:
+    if not llm_client:
+        logger.warning("No LLM client available, returning mock suggestions")
         return [
             {"id": 1, "text": "Drop columns with >50% missing values", "type": "drop"},
             {"id": 2, "text": "Create categorical bins for numerical columns", "type": "feature"},
@@ -109,23 +123,81 @@ async def get_ai_suggestions(summary: Dict) -> List[Dict]:
         ]
     
     prompt = f"""
-You are an expert data scientist. Analyze the following dataset summary and provide 3-5 actionable suggestions for data preprocessing to improve machine learning model performance. Suggestions can include dropping columns, feature engineering, or data transformations. For each suggestion, specify the target column if applicable. Format each suggestion as a JSON object with 'id', 'text', 'type' ('drop', 'feature', or 'transform'), and optional 'column'.
+I have the following dataset summary:
 
-Dataset Summary:
-- Rows: {summary['rows']}
-- Duplicates: {summary['duplicates']}
-- Columns: {summary['columns']}
+Columns and types: {summary["dtypes"]}
+Null percentages: {summary["null_percentages"]}
+Sample row: {summary["sample_row"]}
+Target column: {summary["target"]}
 
-Provide suggestions in JSON format: {{"suggestions": [...]}}
+Please suggest preprocessing steps to make this dataset suitable for machine learning training.
+Suggestions may include: columns to drop, null handling, feature engineering, and encoding advice.
+
+Return the suggestions as a JSON object in the format: {{"suggestions": [{{"id": 1, "text": "Drop column X", "type": "drop", "column": "X"}}, ...]}}
+Each suggestion must have an 'id' (integer), 'text' (description), 'type' ('drop', 'feature', or 'transform'), and optional 'column' (target column name).
+If you cannot provide suggestions in JSON format, provide them in bullet points (e.g., - Drop column X).
 """
     try:
-        response = await openai_client.chat.completions.create(
-            model="gpt-4o-mini",
+        logger.info("Attempting to call Groq API...")
+        chat_completion = llm_client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
+            model="llama-3.3-70b-versatile",
+            stream=False,
         )
-        suggestions = eval(response.choices[0].message.content).get("suggestions", [])
-        return suggestions
+        logger.info("Groq API call successful")
+        response = chat_completion.choices[0].message.content
+        logger.info(f"Raw LLM response: {response}")
+        
+        # Preprocess the response to remove Markdown code block syntax
+        # Remove ```json and ``` (or any ``` block)
+        cleaned_response = response.strip()
+        if cleaned_response.startswith("```json"):
+            cleaned_response = cleaned_response[len("```json"):].strip()
+        if cleaned_response.startswith("```"):
+            cleaned_response = cleaned_response[len("```"):].strip()
+        if cleaned_response.endswith("```"):
+            cleaned_response = cleaned_response[:-len("```")].strip()
+        logger.info(f"Cleaned LLM response: {cleaned_response}")
+        
+        # Try to parse as JSON first
+        try:
+            suggestions = json.loads(cleaned_response).get("suggestions", [])
+            logger.info(f"Parsed JSON suggestions: {suggestions}")
+            if not suggestions:
+                logger.warning("No suggestions found in JSON response")
+                return [{"id": 1, "text": "No suggestions provided by AI", "type": "drop"}]
+            return suggestions
+        except json.JSONDecodeError as json_err:
+            logger.warning(f"JSON parsing failed: {str(json_err)}")
+            # Fallback to parsing bullet points
+            suggestions = []
+            lines = cleaned_response.split('\n')
+            for i, line in enumerate(lines, 1):
+                line = line.strip()
+                if line.startswith('- ') or line.startswith('* '):
+                    text = line[2:].strip()
+                    suggestion_type = "drop"  # Default type
+                    column = None
+                    # Try to infer type and column
+                    if "drop" in text.lower():
+                        suggestion_type = "drop"
+                        column_match = re.search(r"column\s+([a-zA-Z_][a-zA-Z0-9_]*)", text, re.IGNORECASE)
+                        column = column_match.group(1) if column_match else None
+                    elif "bins" in text.lower() or "feature" in text.lower():
+                        suggestion_type = "feature"
+                        column_match = re.search(r"for\s+([a-zA-Z_][a-zA-Z0-9_]*)", text, re.IGNORECASE)
+                        column = column_match.group(1) if column_match else None
+                    elif "normalize" in text.lower() or "encode" in text.lower() or "transform" in text.lower():
+                        suggestion_type = "transform"
+                        column_match = re.search(r"([a-zA-Z_][a-zA-Z0-9_]*)", text, re.IGNORECASE)
+                        column = column_match.group(1) if column_match else None
+                    if text:
+                        suggestions.append({"id": i, "text": text, "type": suggestion_type, "column": column})
+            logger.info(f"Parsed bullet-point suggestions: {suggestions}")
+            if not suggestions:
+                logger.warning("No valid suggestions parsed from bullet points")
+                return [{"id": 1, "text": "Error fetching AI suggestions; drop high-null columns", "type": "drop"}]
+            return suggestions
     except Exception as e:
         logger.error(f"Error getting AI suggestions: {str(e)}")
         return [
@@ -196,17 +268,24 @@ async def get_summary(file_id: str):
     return summary
 
 @app.get("/api/preview/{file_id}", response_model=DatasetPreview)
-async def get_preview(file_id: str):
-    file_path = next(UPLOAD_DIR.glob(f"{file_id}.*"), None)
-    if not file_path or not file_path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
+async def get_preview(file_id: str, cleaned_file_id: Optional[str] = None):
+    if cleaned_file_id:
+        file_path = CLEANED_DIR / f"{cleaned_file_id}.csv"
+        preview_type = "cleaned"
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="Cleaned file not found")
+    else:
+        file_path = next(UPLOAD_DIR.glob(f"{file_id}.*"), None)
+        preview_type = "original"
+        if not file_path or not file_path.exists():
+            raise HTTPException(status_code=404, detail="File not found")
     
     df = await read_file(file_path)
     max_rows = 100
     preview_df = df.head(max_rows)
     columns = preview_df.columns.tolist()
     data = preview_df.fillna("").astype(str).values.tolist()
-    return {"columns": columns, "data": data}
+    return {"preview_type": preview_type, "columns": columns, "data": data}
 
 @app.post("/api/clean/{file_id}", response_model=Dict[str, str])
 async def clean_dataset(file_id: str, options: CleaningOptions):
@@ -241,13 +320,15 @@ async def apply_suggestions(file_id: str, suggestion_ids: List[int]):
         raise HTTPException(status_code=404, detail="File not found")
     
     df = await read_file(file_path)
-    suggestions = (await get_suggestions(file_id)).suggestions
+    summary = get_dataset_summary(df)
+    suggestions = await get_ai_suggestions(summary)
+    
     df_clean = df.copy()
     
     for sug_id in suggestion_ids:
-        suggestion = next((s for s in suggestions if s.id == sug_id), None)
+        suggestion = next((s for s in suggestions if s["id"] == sug_id), None)
         if suggestion:
-            df_clean = apply_suggestion(df_clean, suggestion.dict())
+            df_clean = apply_suggestion(df_clean, suggestion)
     
     cleaned_file_id = str(uuid.uuid4())
     cleaned_path = CLEANED_DIR / f"{cleaned_file_id}.csv"
