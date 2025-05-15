@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NaNja - Process Your Dataset</title>
+    <link rel="stylesheet" href="processing.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h1>NaNja Data Processing</h1>
+        <p class="subtitle">Clean, analyze, and prepare your dataset with ease.</p>
+
+        <!-- Dataset Summary Section -->
+        <section class="summary">
+            <h2><i class="fas fa-table"></i> Dataset Summary</h2>
+            <div class="summary-content" id="summaryContent">
+                <p>Loading dataset summary...</p>
+            </div>
+            <h3>Dataset Preview</h3>
+            <div class="preview-container">
+                <div class="preview-table" id="previewTable">
+                    <p>Loading dataset preview...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Basic Cleaning Section -->
+        <section class="cleaning">
+            <h2><i class="fas fa-broom"></i> Basic Cleaning</h2>
+            <div class="cleaning-options">
+                <div class="option">
+                    <label>
+                        <input type="checkbox" id="removeDuplicates">
+                        Remove duplicate rows
+                    </label>
+                </div>
+                <div class="option">
+                    <label>
+                        <input type="checkbox" id="dropMissing">
+                        Drop rows with missing values
+                    </label>
+                </div>
+                <div class="option">
+                    <label>
+                        <input type="checkbox" id="fillMissing">
+                        Fill missing values
+                    </label>
+                    <select id="fillMethod" disabled>
+                        <option value="mean">Mean</option>
+                        <option value="median">Median</option>
+                        <option value="mode">Mode</option>
+                    </select>
+                </div>
+                <button class="btn" id="applyCleaning">Apply Cleaning</button>
+            </div>
+        </section>
+
+        <!-- AI Suggestions Section -->
+        <section class="ai-suggestions">
+            <h2><i class="fas fa-brain"></i> Smart Processing (AI Suggestions)</h2>
+            <div class="suggestions-content" id="suggestionsContent">
+                <p>Waiting for AI suggestions...</p>
+            </div>
+            <button class="btn" id="applySuggestions">Apply Selected Suggestions</button>
+        </section>
+
+        <!-- Download Section -->
+        <section class="download">
+            <h2><i class="fas fa-download"></i> Download Cleaned Dataset</h2>
+            <button class="btn" id="downloadBtn">Download CSV</button>
+        </section>
+    </div>
+    <script src="processing.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    padding: 40px;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+h1 {
+    color: #333;
+    font-size: 28px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.upload-area {
+    border: 2px dashed #6e8efb;
+    border-radius: 10px;
+    padding: 30px;
+    background: #f9f9f9;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.upload-area:hover, .upload-area.dragover {
+    background: #e8f0fe;
+    border-color: #a777e3;
+}
+
+.upload-area i {
+    font-size: 40px;
+    color: #6e8efb;
+    margin-bottom: 10px;
+}
+
+.upload-area p {
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.upload-area span {
+    color: #6e8efb;
+    font-weight: 500;
+    text-decoration: underline;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.btn {
+    display: inline-block;
+    padding: 12px 30px;
+    background: #6e8efb;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-top: 10px;
+}
+
+.btn:hover {
+    background: #a777e3;
+}
+
+#file-name {
+    color: #333;
+    font-size: 14px;
+    margin-top: 15px;
+    display: none;
+}
+
+.success-message {
+    color: #28a745;
+    font-size: 16px;
+    margin-top: 15px;
+    display: none;
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    .upload-area {
+        padding: 20px;
+    }
+}

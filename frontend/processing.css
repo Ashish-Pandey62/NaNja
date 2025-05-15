@@ -1,0 +1,204 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    padding: 40px;
+    max-width: 800px;
+    width: 100%;
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+h1 {
+    color: #333;
+    font-size: 28px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.subtitle {
+    color: #666;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 16px;
+}
+
+section {
+    margin-bottom: 30px;
+}
+
+h2 {
+    color: #333;
+    font-size: 20px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+h3 {
+    color: #333;
+    font-size: 18px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.summary-content, .suggestions-content {
+    background: #f9f9f9;
+    border-radius: 10px;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+th {
+    background: #6e8efb;
+    color: white;
+}
+
+.preview-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    background: #f9f9f9;
+}
+
+.preview-table {
+    width: 100%;
+}
+
+.preview-table table {
+    border-collapse: collapse;
+}
+
+.preview-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #6e8efb;
+    color: white;
+}
+
+.preview-table td {
+    padding: 8px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.cleaning-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.option label {
+    color: #333;
+    font-size: 16px;
+}
+
+.option select {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.btn {
+    display: inline-block;
+    padding: 12px 30px;
+    background: #6e8efb;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-top: 10px;
+}
+
+.btn:hover {
+    background: #a777e3;
+}
+
+.suggestion-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.suggestion-item button {
+    padding: 5px 15px;
+    font-size: 14px;
+}
+
+.accept-btn {
+    background: #28a745;
+}
+
+.reject-btn {
+    background: #dc3545;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    h2 {
+        font-size: 18px;
+    }
+
+    h3 {
+        font-size: 16px;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .preview-container {
+        max-height: 200px;
+    }
+}
