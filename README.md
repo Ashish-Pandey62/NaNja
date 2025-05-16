@@ -1,6 +1,6 @@
 # NaNja
 
-NaNja is an intelligent web application that streamlines the entire data preprocessing workflow from messy CSV to model-ready data with speed and simplicity. Built using a FastAPI backend and a lightweight HTML/JavaScript frontend, it allows users to upload datasets, explore insightful summaries, detect common issues like nulls and duplicates, and apply basic cleaning operations with a single click. What makes NaNja truly useful is AI-powered data cleaning suggestions — such as dropping irrelevant columns, handling missing values, or recommending feature engineering all of which can also be applied instantly with one click.
+NaNja is an intelligent web application that streamlines the entire data preprocessing workflow from messy CSV to model-ready data with speed and simplicity. Built using a FastAPI backend and a lightweight HTML/JavaScript frontend, it allows users to upload datasets, explore insightful summaries, detect common issues like nulls and duplicates, and apply basic cleaning operations with a single click. What makes NaNja truly useful is AI-powered data cleaning suggestions  such as dropping irrelevant columns, handling missing values, or recommending feature engineering all of which can also be applied instantly with one click.
 
 
 ## Features
