@@ -22,7 +22,7 @@ NaNja is an intelligent web application that streamlines the entire data preproc
 ### Option 1: Running Locally
 1. **Clone the Repository**:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Ashish-Pandey62/NaNja
    cd NaNja
    ```
 
@@ -70,7 +70,7 @@ NaNja is an intelligent web application that streamlines the entire data preproc
 ### Option 2: Running with Docker
 1. **Clone the Repository**:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Ashish-Pandey62/NaNja
    cd NaNja
    ```
 
