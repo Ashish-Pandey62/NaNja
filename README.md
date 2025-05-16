@@ -132,4 +132,5 @@ NaNja is an intelligent web application that streamlines the entire data preproc
 
 ## Contributing
 Contributions from the community are welcomed! 
-Feel free to submit issues, suggest new features, or open pull requests. Please ensure that all tests pass and follow the existing project structure and coding style. Let’s make NaNja even better — together!
+Feel free to submit issues, suggest new features, or open pull requests. Please ensure that all tests pass and follow the existing project structure and coding style.
+
