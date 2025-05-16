@@ -42,7 +42,7 @@ async function refreshPreview() {
 
 async function displaySummary() {
     try {
-        const summaryResponse = await fetch(`http://127.0.0.1:8000/api/summary/${fileId}`);
+        const summaryResponse = await fetch(`http://backend:8000/api/summary/${fileId}`);
         if (!summaryResponse.ok) {
             throw new Error(`Failed to fetch summary: ${summaryResponse.statusText}`);
         }
@@ -86,7 +86,7 @@ async function displayPreview() {
 
     try {
         console.log("Fetching preview for file_id:", fileId, "cleaned_file_id:", cleanedFileId, "type:", currentPreviewType);
-        let previewUrl = `http://127.0.0.1:8000/api/preview/${fileId}`;
+        let previewUrl = `http://backend:8000/api/preview/${fileId}`;
         if (currentPreviewType === 'cleaned' && cleanedFileId) {
             previewUrl += `?cleaned_file_id=${cleanedFileId}`;
         }
@@ -128,7 +128,7 @@ async function displayPreview() {
 
 async function displaySuggestions() {
     try {
-        const response = await fetch(`http://127.0.0.1:8000/api/suggestions/${fileId}`);
+        const response = await fetch(`http://backend:8000/api/suggestions/${fileId}`);
         if (!response.ok) {
             throw new Error(`Failed to fetch suggestions: ${response.statusText}`);
         }
@@ -195,7 +195,7 @@ async function applyCleaning() {
         fillMethod: document.getElementById('fillMethod').value
     };
     try {
-        const response = await fetch(`http://127.0.0.1:8000/api/clean/${fileId}`, {
+        const response = await fetch(`http://backend:8000/api/clean/${fileId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(options)
@@ -223,7 +223,7 @@ async function applySuggestions() {
         return;
     }
     try {
-        const response = await fetch(`http://127.0.0.1:8000/api/apply-suggestions/${fileId}`, {
+        const response = await fetch(`http://backend:8000/api/apply-suggestions/${fileId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(acceptedIds)
@@ -259,7 +259,7 @@ async function downloadDataset() {
         return;
     }
     try {
-        window.location.href = `http://127.0.0.1:8000/api/download/${cleanedFileId}`;
+        window.location.href = `http://backend:8000/api/download/${cleanedFileId}`;
     } catch (error) {
         console.error("Download error:", error);
         alert("Error downloading dataset: " + error.message);

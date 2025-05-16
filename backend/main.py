@@ -13,6 +13,9 @@ from pathlib import Path
 import logging
 import json
 import re
+from fastapi.staticfiles import StaticFiles
+
+
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -30,10 +33,25 @@ if not GROQ_API_KEY:
 app = FastAPI(title="NaNja Backend", description="API for NaNja data preprocessing tool")
 llm_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
+# Mount frontend directory as static files
+# app.mount("/frontend", StaticFiles(directory="frontend", html=True), name="frontend")
+
+
+
 # Enable CORS
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["http://127.0.0.1:8080"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# for docker:
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:8080"],
+    allow_origins=["http://frontend:80", "http://localhost:8080"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -401,9 +419,7 @@ async def get_summary(file_id: str):
 @app.get("/api/preview/{file_id}", response_model=DatasetPreview)
 async def get_preview(file_id: str, cleaned_file_id: Optional[str] = None):
     if cleaned_file_id:
-        file_path = CLEANED_DIR / f"{
-
-cleaned_file_id}.csv"
+        file_path = CLEANED_DIR / f"{cleaned_file_id}.csv"
         preview_type = "cleaned"
         if not file_path.exists():
             logger.error(f"Cleaned file not found at {file_path}")

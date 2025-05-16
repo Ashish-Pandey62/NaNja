@@ -1,0 +1,34 @@
+version: "3.8"
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    volumes:
+      - uploads:/app/uploads
+      - cleaned:/app/cleaned
+    networks:
+      - nanja-network
+    depends_on:
+      - frontend
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    networks:
+      - nanja-network
+
+volumes:
+  uploads:
+  cleaned:
+
+networks:
+  nanja-network:
+    driver: bridge
